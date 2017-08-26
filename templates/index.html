@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Set Game (example test) </h1>
+
+  </ul>
+      <li><a href="#">Game Rules</a></li>
+      <li><a href="#">Something</a></li>
+  </ul>
+
+<button class="shuffle-btn">Shuffle Cards</button>
+<button class="append-btn">Add Three Cards</button>
+<button class="players-btn"> Add another player </button>
+<button class="reset-btn"> Add another player </button>
+
+
+  <div class='grid'>
+    {% for card in cards %}
+    <img class='cards' src= '{{ card.card_image }}' name= '{{card.card_name}}' color='{{card.color}}' shape='{{card.shape}}' pattern='{{card.pattern}}' number="{{card.number}}">
+    {% endfor %}
+
+  </div>
+
+
+<script defer>
+'use strict';
+
+$('.cards').hide();
+connectCards();
+
+// external js: isotope.pkgd.js, imagesloaded.pkgd.js, jquery.js
+
+//returns images in a an array 
+var deck = $('.cards').map(function(card) {
+  //make a variable called and assign it to the src object 
+    var src = this.src;
+    return this;
+    //use .get to fetch the images
+}).get();
+
+console.log(deck); 
+
+var cardsOnBoard = 0;
+var dumpedCards = 3;
+var cardSelected = 0;
+
+
+//init
+var $grid = $('.grid').isotope({
+  itemSelector: '.cards',
+  layoutMode: 'masonry',
+   masonry: {
+    columnWidth: 90
+  },
+  masonryHorizontal: {
+    rowHeight: 100
+  }
+});
+
+
+$('.shuffle-btn').on( 'click', function() {
+  $grid.isotope('shuffle');
+});
+
+
+// add three more cards from deck
+function addThree(deck) {
+  var setCards = deck.slice(cardsOnBoard, dumpedCards);
+  console.log('appending new images: ' + (cardsOnBoard+3) + ' through ' + (dumpedCards+3));
+  var items = setCards.map( function( img ) {
+    return '<img class="cards" src="' + img.src + '" >';
+  });
+
+  // turn array into jQuery object, also hide
+  //add all images together 
+  var $items = $( items.join(''));
+  $items.imagesLoaded( function() {
+    //load items onto
+    $grid.append($items);
+    $grid.isotope( 'appended', $items );
+  });
+  cardsOnBoard = dumpedCards;
+  dumpedCards+=3;
+}
+
+// bind loadMorePosts to button click
+$('.append-btn').on('click', function() {
+  if (cardsOnBoard < 12) {
+    addThree(deck);  
+  }
+  else {}
+});
+
+$('.reset-btn').click(function() {
+  $grid.isotope('reloadItems');
+});
+
+
+//------------------------------
+function connectCards() {
+  $(document.body).on('click', '.cards', function() {
+      console.log(this);
+      var card =$('.cards img').index(this);
+        var color = $(this).attr("color");
+        var shape = $(this).attr("shape");
+        var pattern = $(this).attr("pattern");
+        var number = $(this).attr("number");
+        var name = $(this).attr('name');
+
+      
+        if ($(this).attr("isSelected") === "true") {
+            $(this).css("border", "0");
+            $(this).attr("isSelected", "false");
+            cardSelected--;
+       }  else {
+         if (cardSelected < 3){
+            $(this).css("border", "solid 5px yellow");
+            $(this).attr("isSelected", "true");
+            cardSelected++; 
+            console.log(color, shape, pattern, number, name, cardSelected);
+            if(cardSelected == 3){ 
+              var cards = $('img[isselected = true]');
+              checkAttribute(cards);
+            } 
+         }
+       }
+    })
+
+}
+        
+
+function isAttrSame(attrs){
+  var i = null;
+  for (i in attrs){
+    if(attrs[0] !== attrs[i]){
+      return false;
+    }
+  }
+  return true;
+}
+
+function checkAttribute(cards) {
+
+  var colors = []; 
+  var shapes = []; 
+  var patterns = []; 
+  var quantity = [];
+  var matchingAttr = 0;
+  
+  cards.each(function(card) {
+    colors.push(cards[card].name[0])
+    shapes.push(cards[card].name[1])
+    patterns.push(cards[card].name[2])
+    quantity.push(cards[card].name[3])
+  })
+  
+  var attrs = [colors,shapes,patterns,quantity];
+  console.log(attrs);
+  attrs.forEach(function(attr){
+    matchingAttr += isAttrSame(attr) ? 1 : 0 
+  })
+  
+  if(matchingAttr == 3){
+    console.log("You found a Set")
+     $(cards).css("border", "solid 5px green");
+     //hides the cards that are sets
+     $(cards).toggle('highlight');
+  }else{
+    console.log("You have not found a Set");
+    $(cards).css("border", "solid 5px red");
+  }
+}
+
+  
+</script>
+{% endblock %}

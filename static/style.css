@@ -1,0 +1,29 @@
+body {
+    font: 12px 'Noto Sans','Lucida Grande','Lucida Sans Unicode',Geneva,Verdana,Sans-Serif;
+    color: #707070;
+    background: #eee;
+    overflow-x: hidden;
+    cursor: default;
+    margin: 10px;
+  }
+
+img {
+    box-sizing: content-box;
+      height:80px;
+      width: 100px;
+      margin:10px;
+      transition:all 0.3s ease;
+      color:#41403E;
+      font-size:1rem;
+      letter-spacing:1px;
+      box-shadow: 30px 30px 30px -25px hsla(0,0%,0%,1);
+      border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  }
+
+
+#container {width: 960px; margin: 0 auto;}
+ 
+#filter {list-style-type: none; margin: 0; padding: 0}
+#filter li, #filter a {display: block; float: left; margin: 0}
+#filter a { background: #ddd; border: 1px solid #666; text-decoration: none; padding: 5px 10px;}
+#filter a.active {background: yellow;}
