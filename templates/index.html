@@ -10,125 +10,126 @@
   </ul>
 
 <button class="shuffle-btn">Shuffle Cards</button>
-<button class="append-btn">Add Three Cards</button>
-<button class="players-btn"> Add another player </button>
-<button class="reset-btn"> Add another player </button>
+
 
 
   <div class='grid'>
     {% for card in cards %}
     <img class='cards' src= '{{ card.card_image }}' name= '{{card.card_name}}' color='{{card.color}}' shape='{{card.shape}}' pattern='{{card.pattern}}' number="{{card.number}}">
     {% endfor %}
-
   </div>
 
 
 <script defer>
 'use strict';
 
-$('.cards').hide();
-connectCards();
+// external js: isotope.pkgd.js
 
-// external js: isotope.pkgd.js, imagesloaded.pkgd.js, jquery.js
-
-//returns images in a an array 
-var deck = $('.cards').map(function(card) {
-  //make a variable called and assign it to the src object 
-    var src = this.src;
-    return this;
-    //use .get to fetch the images
-}).get();
-
-console.log(deck); 
-
-var cardsOnBoard = 0;
-var dumpedCards = 3;
-var cardSelected = 0;
+//hide image objects
+// $('.cards').hide();
 
 
-//init
+
+function getThreeNewCardsFromServer(){
+  var url = '/three-more-cards.json';
+  var callback = addThreeCardToUI
+  $.get(url, callback)
+}
+
+
+function addThreeCardToUI(results) {
+  var grid = $('.grid'); 
+  for(var result in results){
+    var card_html ="<img class='cards' src='";
+    card_html += results[result].card_image + "' name='" + results[result].card_name;
+    card_html += "' color='" + results[result].color;
+    card_html += "' shape='" + results[result].shape;
+    card_html += "' pattern='" + results[result].pattern;
+    card_html += "' number='" + results[result].number;
+    card_html +="'>";
+    grid.append(card_html);
+  }
+}
+
+// $(function() {
+//     $('.append-btn').click(function() {
+// var cards = $(this).attr('data-cardImages');
+// $.ajax({
+//   url: '/three-more-cards',
+//   data: {"q": JSON.stringify({"filters": filters})},
+//   dataType: "json",
+//   contentType: "application/json",
+//   success: function(data) { console.log(data.objects); }
+// });
+// console.log(cards); 
+
+
+
+//second timer
+    var sec = 0;
+    var min = 0;
+    function clock() {
+      sec++;
+     $('.timer').html(min + ":" + sec); 
+      if (sec == 60) {
+        sec = 0;
+        min++;
+      }
+      if (min == 5) {
+        min = 0;
+        $('.timer').html('you lose!'); 
+      }
+    };
+    window.setInterval(clock,1000);
+
+
+//init isotope 
 var $grid = $('.grid').isotope({
   itemSelector: '.cards',
   layoutMode: 'masonry',
    masonry: {
-    columnWidth: 90
+    columnWidth: 100
   },
   masonryHorizontal: {
     rowHeight: 100
   }
 });
 
-
 $('.shuffle-btn').on( 'click', function() {
   $grid.isotope('shuffle');
 });
 
-
-// add three more cards from deck
-function addThree(deck) {
-  var setCards = deck.slice(cardsOnBoard, dumpedCards);
-  console.log('appending new images: ' + (cardsOnBoard+3) + ' through ' + (dumpedCards+3));
-  var items = setCards.map( function( img ) {
-    return '<img class="cards" src="' + img.src + '" >';
-  });
-
-  // turn array into jQuery object, also hide
-  //add all images together 
-  var $items = $( items.join(''));
-  $items.imagesLoaded( function() {
-    //load items onto
-    $grid.append($items);
-    $grid.isotope( 'appended', $items );
-  });
-  cardsOnBoard = dumpedCards;
-  dumpedCards+=3;
-}
-
-// bind loadMorePosts to button click
-$('.append-btn').on('click', function() {
-  if (cardsOnBoard < 12) {
-    addThree(deck);  
-  }
-  else {}
-});
-
-$('.reset-btn').click(function() {
-  $grid.isotope('reloadItems');
-});
+ var cardSelected = 0;
+        $('.grid').on('click', '.cards', function() {
+          var card = $('.cards').index(this);
+          var color = $(this).attr('data-color');
+          var shape = $(this).attr('data-shape');
+          var pattern = $(this).attr('data-pattern');
+          var number = $(this).attr('data-number');
+   
+          
+            if ($(this).attr("isSelected") === "true") {
+                $(this).removeClass('selected');
+                $(this).attr("isSelected", "false");
+                cardSelected--;
+           }  else {
+             if (cardSelected < 3){
+                $(this).addClass('selected');
+                $(this).attr("isSelected", "true");
+                cardSelected++; 
+                console.log(card, color, shape, pattern, number, cardSelected);
+                if(cardSelected == 3){ 
+                  cards = $('img[isselected = true]')
+                  cardSelected === 0;
+                  checkAttribute(cards);
+          
+                } 
+             }
+           }
+        })
 
 
-//------------------------------
-function connectCards() {
-  $(document.body).on('click', '.cards', function() {
-      console.log(this);
-      var card =$('.cards img').index(this);
-        var color = $(this).attr("color");
-        var shape = $(this).attr("shape");
-        var pattern = $(this).attr("pattern");
-        var number = $(this).attr("number");
-        var name = $(this).attr('name');
 
-      
-        if ($(this).attr("isSelected") === "true") {
-            $(this).css("border", "0");
-            $(this).attr("isSelected", "false");
-            cardSelected--;
-       }  else {
-         if (cardSelected < 3){
-            $(this).css("border", "solid 5px yellow");
-            $(this).attr("isSelected", "true");
-            cardSelected++; 
-            console.log(color, shape, pattern, number, name, cardSelected);
-            if(cardSelected == 3){ 
-              var cards = $('img[isselected = true]');
-              checkAttribute(cards);
-            } 
-         }
-       }
-    })
-
-}
-        
 
 function isAttrSame(attrs){
   var i = null;
@@ -140,37 +141,167 @@ function isAttrSame(attrs){
   return true;
 }
 
-function checkAttribute(cards) {
+function isAttrDiff(attrs){
+    if(attrs[0] !== attrs[1] && attrs[0] !== attrs[2] && attrs[1] !== attrs[2]) {
+       return true; 
+       }
+   return false; 
+}
 
-  var colors = []; 
-  var shapes = []; 
-  var patterns = []; 
-  var quantity = [];
-  var matchingAttr = 0;
+function checkAttribute(cards) {
+  
+  var colors = []; var shapes = []; var patterns = []; var quantity = [];
+  // var sameAttr = 0;
+  // var diffAttr = 0;
+  var score = 0;
   
   cards.each(function(card) {
-    colors.push(cards[card].name[0])
-    shapes.push(cards[card].name[1])
-    patterns.push(cards[card].name[2])
-    quantity.push(cards[card].name[3])
+    colors.push(cards[card].id[0])
+    shapes.push(cards[card].id[1])
+    patterns.push(cards[card].id[2])
+    quantity.push(cards[card].id[3])
   })
   
   var attrs = [colors,shapes,patterns,quantity];
   console.log(attrs);
   attrs.forEach(function(attr){
-    matchingAttr += isAttrSame(attr) ? 1 : 0 
+    score += isAttrSame(attr) ? 1 : 0;
+    score += isAttrDiff(attr) ? 1 : 0;
+    
   })
   
-  if(matchingAttr == 3){
+{
+  if (score === 4 ) {
     console.log("You found a Set")
-     $(cards).css("border", "solid 5px green");
-     //hides the cards that are sets
-     $(cards).toggle('highlight');
+    
+     $(cards).toggle("highlight");
+    $grid.isotope('shuffle');
   }else{
     console.log("You have not found a Set");
-    $(cards).css("border", "solid 5px red");
+    $(cards).removeClass('selected'); 
+    $grid.isotope('shuffle');
   }
+ }
 }
+
+    
+
+
+// $('.cards').hide();
+// connectCards();
+
+// // external js: isotope.pkgd.js, imagesloaded.pkgd.js, jquery.js
+
+// //returns images in a an array 
+// var deck = $('.cards').map(function(card) {
+//   //make a variable called and assign it to the src object 
+//     var src = this.src;
+//     return this;
+//     //use .get to fetch the images
+// }).get();
+
+// console.log(deck); 
+
+// var cardsOnBoard = 0;
+// var dumpedCards = 3;
+// var cardSelected = 0;
+
+
+// //init
+// var $grid = $('.grid').isotope({
+//   itemSelector: '.cards',
+//   layoutMode: 'masonry',
+//    masonry: {
+//     columnWidth: 90
+//   },
+//   masonryHorizontal: {
+//     rowHeight: 100
+//   }
+// });
+
+
+// $('.shuffle-btn').on( 'click', function() {
+//   $grid.isotope('shuffle');
+// });
+
+
+// // add three more cards from deck
+// function addThree(deck) {
+//   var setCards = deck.slice(cardsOnBoard, dumpedCards);
+//   console.log('appending new images: ' + (cardsOnBoard+3) + ' through ' + (dumpedCards+3));
+//   var items = setCards.map( function(card) {
+//     return '<img class="cards" src="' + card.src + '" >';
+//   });
+
+//   // turn array into jQuery object, also hide
+//   //add all images together 
+//   var $items = $( items.join(''));
+//   $items.imagesLoaded( function() {
+//     //load items onto
+//     $grid.append($items);
+//     $grid.isotope( 'appended', $items );
+//   });
+//   cardsOnBoard = dumpedCards;
+//   dumpedCards+=3;
+// }
+
+// // bind loadMorePosts to button click
+// $('.append-btn').on('click', function() {
+//   if (cardsOnBoard < 12) {
+//     addThree(deck);  
+//   }
+//   else {}
+// });
+
+// $('.reset-btn').click(function() {
+//   $grid.isotope('reloadItems');
+// });
+
+
+// //------------------------------
+// function connectCards() {
+//   $(document.body).on('click', '.cards', function() {
+//       console.log(this);
+//       var card =$('.cards img').index(this);
+//         var color = $(this).attr("color");
+//         var shape = $(this).attr("shape");
+//         var pattern = $(this).attr("pattern");
+//         var number = $(this).attr("number");
+//         var name = $(this).attr('name');
+
+      
+//         if ($(this).attr("isSelected") === "true") {
+//             $(this).css("border", "0");
+//             $(this).attr("isSelected", "false");
+//             cardSelected--;
+//        }  else {
+//          if (cardSelected < 3){
+//             $(this).css("border", "solid 5px yellow");
+//             $(this).attr("isSelected", "true");
+//             cardSelected++; 
+//             console.log(color, shape, pattern, number, name, cardSelected);
+//             if(cardSelected == 3){ 
+//               var cards = $('img[isselected = true]');
+//               checkAttribute(cards);
+//             } 
+//          }
+//        }
+//     })
+
+// }
+        
+
+// function isAttrSame(attrs){
+//   var i = null;
+//   for (i in attrs){
+//     if(attrs[0] !== attrs[i]){
+//       return false;
+//     }
+//   }
+//   return true;
+// }
+
+
 
   
 </script>

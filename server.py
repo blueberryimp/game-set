@@ -1,5 +1,5 @@
 from jinja2 import StrictUndefined
-from flask import Flask, render_template, request, flash, redirect, session
+from flask import Flask, render_template, request, flash, redirect, session, jsonify
 from flask_debugtoolbar import DebugToolbarExtension
 from model import connect_to_db, db, User, Card, Gamestate, Cardstate
 from random import choice
@@ -14,9 +14,16 @@ app.jinja_env.auto_reload = True
 
 @app.route('/')
 def index():
-    cards = Card.query.order_by(func.random()).all()
-    # cards = Card.query.order_by(func.random()).limit(12).all()
+    #cards = Card.query.order_by(func.random()).all()
+    cards = Card.query.order_by(func.random()).limit(12).all()
     return render_template('index.html', cards=cards)
+
+@app.route('/three-more-cards.json', methods=['GET'])
+def add_three_cards():
+    """return three cards"""
+    cards = Card.query.order_by(func.random()).limit(3).all()
+    cards = [card.serialize for card in cards]
+    return jsonify({'cards': cards})
 
 @app.route('/register', methods=['GET'])
 def register_form():

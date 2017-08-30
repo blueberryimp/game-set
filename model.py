@@ -44,6 +44,19 @@ class Card(db.Model):
         return "<Card card_id=%s card_name=%s card_image=%s color=%s shape=%s pattern=%s number=%s>" % (
             self.card_id, self.card_name, self.card_image, self.color, self.shape, self.pattern, self.number)
 
+    @property
+    def serialize(self):
+        return {
+            'card_id': self.card_id,
+            'card_name': self.card_name,
+            'card_image': self.card_image,
+            'color': self.color,
+            'shape': self.shape,
+            'pattern': self.pattern,
+            'number': self.number,
+
+        }
+
 class Cardstate(db.Model):
     __tablename__ = "cardstate"
 
